@@ -54,6 +54,29 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # ----------------------------------------
+      # VERIFY AWS REGION
+      # ----------------------------------------
+
+      - name: Verify AWS Region
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          set -euo pipefail
+
+          echo "Checking AWS region..."
+
+          if [ "$AWS_REGION" = "ap-southeast-2" ]; then
+            echo "AWS region configured correctly"
+          else
+            echo "::error::AWS region is missing or incorrect"
+            exit 1
+          fi
+
+      # ----------------------------------------
+      # AWS AUTHENTICATION
+      # ----------------------------------------
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -61,9 +84,17 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
+      # ----------------------------------------
+      # LOGIN TO ECR
+      # ----------------------------------------
+
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
+
+      # ----------------------------------------
+      # BUILD AND PUSH DOCKER IMAGE
+      # ----------------------------------------
 
       - name: Build and Push Docker Image
         env:
@@ -98,6 +129,25 @@ jobs:
     environment: production
 
     steps:
+
+      # ----------------------------------------
+      # VERIFY AWS REGION
+      # ----------------------------------------
+
+      - name: Verify AWS Region
+        env:
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+        run: |
+          set -euo pipefail
+
+          echo "Checking AWS region..."
+
+          if [ "$AWS_REGION" = "ap-southeast-2" ]; then
+            echo "AWS region configured correctly"
+          else
+            echo "::error::AWS region is missing or incorrect"
+            exit 1
+          fi
 
       # ----------------------------------------
       # AWS AUTHENTICATION
@@ -222,7 +272,7 @@ jobs:
           docker rm -f atlas-enterprise-ai || true
 
       # ----------------------------------------
-      # START NEW CONTAINER WITH GITHUB SECRETS
+      # START NEW CONTAINER
       # ----------------------------------------
 
       - name: Start New Container
